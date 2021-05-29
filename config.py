@@ -55,14 +55,14 @@ def get_config():
     config.checkpoint_frequency = 25_000
     config.batch_size = 128
     config.learning_rate = 1e-3
-    config.l2_reg = 1e-4
+    config.l2_reg = 1e-5
 
     # ============================================== #
     # Policy params.
     # ============================================== #
     config.policy = ml_collections.ConfigDict()
 
-    config.policy.type = "mlp"
+    config.policy.type = "lstm"
     config.policy.input_dim = obs_dim
     config.policy.output_dim = action_dim
     config.policy.action_range = action_range
@@ -71,6 +71,12 @@ def get_config():
     config.policy.mlp = ml_collections.ConfigDict()
     config.policy.mlp.hidden_dim = 128
     config.policy.mlp.hidden_depth = 3
+    config.policy.mlp.dropout_prob = 0.1
+
+    # LSTM policy params.
+    config.policy.lstm = ml_collections.ConfigDict()
+    config.policy.lstm.hidden_dim = 128
+    config.policy.lstm.hidden_depth = 3
 
     # ============================================== #
     # End of config file

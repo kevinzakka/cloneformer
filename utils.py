@@ -50,6 +50,15 @@ def get_policy(config):
             hidden_dim=config.policy.mlp.hidden_dim,
             output_dim=config.policy.output_dim,
             hidden_depth=config.policy.mlp.hidden_depth,
+            dropout_prob=config.policy.mlp.dropout_prob,
+            action_range=config.policy.action_range,
+        )
+    elif config.policy.type == "lstm":
+        policy = policies.LSTMPolicy(
+            input_dim=config.policy.input_dim,
+            hidden_dim=config.policy.lstm.hidden_dim,
+            output_dim=config.policy.output_dim,
+            hidden_depth=config.policy.lstm.hidden_depth,
             action_range=config.policy.action_range,
         )
     else:

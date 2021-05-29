@@ -68,6 +68,8 @@ def main(_):
     # Evaluate and dump result to disk.
     protocol = evaluation.EvaluationProtocol(policy, FLAGS.n_rollouts)
     result = protocol.do_eval(env)
+    for key, val in result._asdict().items():
+        print(f"{key}: {val:4f}")
     with open(os.path.join(FLAGS.experiment_path, "result.json"), "w") as fp:
         json.dump(result._asdict(), fp)
 

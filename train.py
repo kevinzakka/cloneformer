@@ -118,6 +118,9 @@ def main(_):
     policy = utils.get_policy(FLAGS.config).to(device)
     optimizer = utils.get_optimizer(FLAGS.config, policy)
 
+    from ipdb import set_trace
+    set_trace()
+
     # Create checkpoint manager.
     checkpoint_dir = os.path.join(exp_dir, "checkpoints")
     checkpoint_manager = checkpoint.CheckpointManager(

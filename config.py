@@ -6,28 +6,59 @@ import ml_collections
 def get_config():
     config = ml_collections.ConfigDict()
 
+    # ================================================= #
+    # Placeholders.
+    # ================================================= #
+    obs_dim = ml_collections.FieldReference(None, field_type=int)
+    action_dim = ml_collections.FieldReference(None, field_type=int)
+
     # ============================================== #
     # General experiment params.
     # ============================================== #
+    config.embodiment = "gripper"
+
     # The root directory where experiments will be saved.
-    config.ROOT_DIR = "/home/kevin/Desktop/bcformer/results/"
+    config.root_dir = "/home/kevin/Desktop/bcformer/results/"
 
     # RNG seed. Set this to `None` to disable seeding.
-    config.SEED = 1
+    config.seed = 1
 
     # CUDNN-related parameters that affect reproducibility.
-    config.CUDNN_DETERMINISTIC = False
-    config.CUDNN_BENCHMARK = True
-
-    config.EMBODIMENT = "gripper"
+    config.cudnn_deterministic = False
+    config.cudnn_benchmark = True
 
     # ============================================== #
     # Dataset params.
     # ============================================== #
-    config.DATA = ml_collections.ConfigDict()
+    config.data = ml_collections.ConfigDict()
 
     # Absolute path to the dataset root.
-    config.DATA.ROOT = "/home/kevin/datasets/xirl_corl/"
+    config.data.root = "/home/kevin/datasets/xirl_corl/"
+
+    # ================================================= #
+    # Training parameters.
+    # ================================================= #
+    config.train_max_iters = 10_000
+    config.eval_frequency = 100
+    config.logging_frequency = 100
+    config.checkpoint_frequency = 1_000
+    config.batch_size = 32
+    config.learning_rate = 1e-3
+    config.l2_reg = 1e-5
+
+    # ============================================== #
+    # Policy params.
+    # ============================================== #
+    config.policy = ml_collections.ConfigDict()
+
+    config.policy.type = "mlp"
+    config.policy.input_dim = obs_dim
+    config.policy.output_dim = action_dim
+
+    # MLP policy params.
+    config.policy.mlp = ml_collections.ConfigDict()
+    config.policy.mlp.hidden_dim = 128
+    config.policy.mlp.hidden_depth = 3
 
     # ============================================== #
     # End of config file

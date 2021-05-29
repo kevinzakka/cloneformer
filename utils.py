@@ -1,9 +1,10 @@
 """Common utilities."""
 
 import os.path as osp
-import torch
-import numpy as np
 import random
+
+import numpy as np
+import torch
 
 import data
 import policies
@@ -42,7 +43,7 @@ def get_bc_dataloaders(config):
 
 def get_policy(config):
     if config.policy.type == "mlp":
-        policy = policies.MLPPolicy(
+        policy = policies.GaussianMLPPolicy(
             input_dim=config.policy.input_dim,
             hidden_dim=config.policy.mlp.hidden_dim,
             output_dim=config.policy.output_dim,

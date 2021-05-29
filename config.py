@@ -11,6 +11,13 @@ def get_config():
     # ================================================= #
     obs_dim = ml_collections.FieldReference(None, field_type=int)
     action_dim = ml_collections.FieldReference(None, field_type=int)
+    action_range = ml_collections.FieldReference(None, field_type=tuple)
+
+    # ============================================== #
+    # Env params.
+    # ============================================== #
+    config.action_repeat = 1
+    config.frame_stack = 3
 
     # ============================================== #
     # General experiment params.
@@ -27,6 +34,8 @@ def get_config():
     config.cudnn_deterministic = False
     config.cudnn_benchmark = True
 
+    config.save_video = True
+
     # ============================================== #
     # Dataset params.
     # ============================================== #
@@ -38,12 +47,13 @@ def get_config():
     # ================================================= #
     # Training parameters.
     # ================================================= #
-    config.train_max_iters = 10_000
-    config.eval_frequency = 100
+    config.num_eval_episodes = 50
+    config.train_max_iters = 20_000
+    config.eval_frequency = 500
     config.logging_frequency = 100
     config.checkpoint_frequency = 1_000
     config.batch_size = 32
-    config.learning_rate = 1e-3
+    config.learning_rate = 1e-4
     config.l2_reg = 1e-5
 
     # ============================================== #
@@ -54,6 +64,7 @@ def get_config():
     config.policy.type = "mlp"
     config.policy.input_dim = obs_dim
     config.policy.output_dim = action_dim
+    config.policy.action_range = action_range
 
     # MLP policy params.
     config.policy.mlp = ml_collections.ConfigDict()

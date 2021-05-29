@@ -1,19 +1,20 @@
 """Train a policy."""
 
-from absl import app
-from absl import flags
-
 import os
+
+import gym
 import torch
 import torch.nn.functional as F
+import xmagical
 import yaml
-
+from absl import app, flags
+from ipdb import set_trace
 from ml_collections import ConfigDict, config_flags
 from torchkit import Logger, checkpoint
 
 import utils
-
-from ipdb import set_trace
+import video
+import wrappers
 
 FLAGS = flags.FLAGS
 
@@ -46,10 +47,18 @@ def setup_experiment(exp_dir: str):
             yaml.dump(ConfigDict.to_dict(FLAGS.config), fp)
 
 
+def load_env() -> gym.Env:
+    env_name = f"SweepToTop-{FLAGS.config.embodiment.capitalize()}-State-Allo-Demo-v0"
+    xmagical.register_envs()
+    env = gym.make(env_name)
+    env = wrappers.wrapper_from_config(FLAGS.config, env)
+    return env
+
+
 @torch.no_grad()
 def eval_policy(policy, valid_loader, device) -> float:
     policy.eval()
-    valid_loss = 0.
+    valid_loss = 0.0
     for state, action in valid_loader:
         state, action = state.to(device), action.to(device)
         out = policy(state)
@@ -59,9 +68,33 @@ def eval_policy(policy, valid_loader, device) -> float:
     return valid_loss
 
 
+@torch.no_grad()
+def rollout_policy(policy, device, video_recorder, global_step, env):
+    policy.eval()
+    average_episode_success = 0
+    for episode in range(FLAGS.config.num_eval_episodes):
+        observation = env.reset()
+        video_recorder.reset(enabled=(episode == 0))
+        while True:
+            obs_tensor = torch.from_numpy(observation).unsqueeze(0).float().to(device)
+            action_tensor = policy(obs_tensor)
+            action = action_tensor.cpu().flatten().numpy()
+            observation, _, done, info = env.step(action)
+            video_recorder.record(env)
+            if done:
+                average_episode_success += info["eval_score"]
+                break
+        video_recorder.save(f"{global_step}.mp4")
+    average_episode_success /= FLAGS.config.num_eval_episodes
+    print(f"Avg episode success: {average_episode_success:.4f}")
+    return average_episode_success
+
+
 def main(_):
     exp_dir = os.path.join(FLAGS.config.root_dir, FLAGS.experiment_name)
     setup_experiment(exp_dir)
+
+    env = load_env()
 
     # Set RNG seeds.
     if FLAGS.config.seed is not None:
@@ -80,14 +113,20 @@ def main(_):
 
     logger = Logger(exp_dir, FLAGS.resume)
 
+    video_recorder = video.VideoRecorder(exp_dir if FLAGS.config.save_video else None)
+
     data_loaders = utils.get_bc_dataloaders(FLAGS.config)
     num_train_pairs = len(data_loaders["train"].dataset)
     print(f"Training on {num_train_pairs} state, action pairs.")
 
     # Dynamically set observation and action space values.
-    obs, act = next(iter(data_loaders['valid']))
+    obs, act = next(iter(data_loaders["valid"]))
     FLAGS.config.policy.input_dim = obs.shape[-1]
     FLAGS.config.policy.output_dim = act.shape[-1]
+    FLAGS.config.action_range = [
+        float(env.action_space.low.min()),
+        float(env.action_space.high.max()),
+    ]
 
     policy = utils.get_policy(FLAGS.config).to(device)
     optimizer = utils.get_optimizer(FLAGS.config, policy)
@@ -116,7 +155,7 @@ def main(_):
                 optimizer.step()
 
                 if not global_step % FLAGS.config.logging_frequency:
-                    logger.log_scalar(loss, global_step, 'train/loss')
+                    logger.log_scalar(loss, global_step, "train/loss")
                     print(
                         "Iter[{}/{}] (Epoch {}), Loss: {:.3f}".format(
                             global_step,
@@ -128,7 +167,11 @@ def main(_):
 
                 if not global_step % FLAGS.config.eval_frequency:
                     valid_loss = eval_policy(policy, data_loaders["valid"], device)
-                    logger.log_scalar(valid_loss, global_step, 'valid/loss')
+                    logger.log_scalar(valid_loss, global_step, "valid/loss")
+                    eval_success = rollout_policy(
+                        policy, device, video_recorder, global_step
+                    )
+                    logger.log_scalar(eval_success, global_step, "valid/success")
 
                 # Save model checkpoint.
                 if not global_step % FLAGS.config.checkpoint_frequency:
@@ -148,6 +191,5 @@ def main(_):
         pass
 
 
-
 if __name__ == "__main__":
-  app.run(main)
+    app.run(main)

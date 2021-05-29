@@ -1,11 +1,31 @@
 """BC neural net policies."""
 
+import abc
+
+import numpy as np
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from torch import distributions as pyd
 
-class MLPPolicy(nn.Module):
+TensorType = torch.Tensor
+
+
+class BasePolicy(abc.ABC, nn.Module):
+    def __init__(self, *, action_range):
+        self.action_range = action_range
+
+    def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
+        return self.trunk(x)
+
+    def act(self, obs: np.ndarray) -> np.ndarray:
+        pass
+        # action_tensor = action_tensor.clamp(*action_range)
+
+
+class MLPPolicy(BasePolicy):
     """An MLP policy."""
 
     def __init__(

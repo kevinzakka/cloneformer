@@ -63,7 +63,7 @@ class BCDataset(torch.utils.data.Dataset):
         # Get list of subdirectories, each containing a trajectory.
         traj_dir = glob.glob(osp.join(dirname, "*"))
         traj_dir = sorted(traj_dir, key=lambda x: int(os.path.basename(x)))
-        traj_dir = traj_dir[:100]
+        traj_dir = traj_dir[:500]
 
         # Load the trajectories.
         trajectories = [

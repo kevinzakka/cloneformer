@@ -32,7 +32,7 @@ def get_bc_dataloaders(config):
         return torch.utils.data.DataLoader(
             dataset,
             batch_size=config.batch_size,
-            num_workers=4 if torch.cuda.is_available() else 0,
+            num_workers=0,  # 4 if torch.cuda.is_available() else 0,
             pin_memory=torch.cuda.is_available(),
             shuffle=True,
         )
@@ -69,7 +69,7 @@ def load_xmagical_env(config) -> gym.Env:
     import xmagical
 
     xmagical.register_envs()
-    env_name = f"SweepToTop-{config.embodiment.capitalize()}-State-Allo-Demo-v0"
+    env_name = f"SweepToTop-{config.embodiment.capitalize()}-State-Allo-TestLayout-v0"
     env = gym.make(env_name)
     env = wrappers.wrapper_from_config(config, env)
     return env

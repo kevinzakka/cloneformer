@@ -1,6 +1,7 @@
 """BC neural net policies."""
 
 import abc
+from typing import Tuple
 
 import numpy as np
 import torch
@@ -12,7 +13,7 @@ TensorType = torch.Tensor
 class BasePolicy(abc.ABC, nn.Module):
     """Base policy abstraction."""
 
-    def __init__(self, action_range):
+    def __init__(self, action_range: Tuple[float, ...]) -> None:
         super().__init__()
 
         self.action_range = action_range
@@ -23,6 +24,7 @@ class BasePolicy(abc.ABC, nn.Module):
 
     def act(self, obs: np.ndarray) -> np.ndarray:
         obs_tensor = torch.from_numpy(obs).unsqueeze(0).float()
+        obs_tensor = obs_tensor.to(next(self.parameters()).device)
         action_tensor = self.forward(obs_tensor)
         action_tensor = action_tensor.clamp(*self.action_range)
         action = action_tensor[0].cpu().detach().numpy()

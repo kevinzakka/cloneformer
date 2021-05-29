@@ -63,7 +63,7 @@ class BCDataset(torch.utils.data.Dataset):
         # Get list of subdirectories, each containing a trajectory.
         traj_dir = glob.glob(osp.join(dirname, "*"))
         traj_dir = sorted(traj_dir, key=lambda x: int(os.path.basename(x)))
-        traj_dir = traj_dir[:500]
+        # traj_dir = traj_dir[:100]
 
         # Load the trajectories.
         trajectories = [
@@ -99,8 +99,6 @@ class BCDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         obs = self.obs[idx]
         act = self.acts[idx]
-
-        # TODO: Apply data augmentation.
 
         # Convert to tensors.
         obs = torch.FloatTensor(obs)

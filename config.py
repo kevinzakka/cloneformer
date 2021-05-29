@@ -34,6 +34,7 @@ def get_config():
     config.cudnn_deterministic = False
     config.cudnn_benchmark = True
 
+    # Whether to save eval rollouts to disk.
     config.save_video = True
 
     # ============================================== #
@@ -47,14 +48,14 @@ def get_config():
     # ================================================= #
     # Training parameters.
     # ================================================= #
-    config.num_eval_episodes = 50
-    config.train_max_iters = 20_000
-    config.eval_frequency = 500
-    config.logging_frequency = 100
-    config.checkpoint_frequency = 1_000
-    config.batch_size = 32
-    config.learning_rate = 1e-4
-    config.l2_reg = 1e-5
+    config.num_eval_episodes = 20
+    config.train_max_iters = 100_000
+    config.eval_frequency = 10_000
+    config.logging_frequency = 1_000
+    config.checkpoint_frequency = 25_000
+    config.batch_size = 128
+    config.learning_rate = 1e-3
+    config.l2_reg = 1e-4
 
     # ============================================== #
     # Policy params.

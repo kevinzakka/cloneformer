@@ -57,10 +57,11 @@ def eval_policy(policy, valid_loader, device) -> float:
 
 
 @torch.no_grad()
-def rollout_policy(policy, device, video_recorder, global_step, env):
+def rollout_policy(policy, video_recorder, global_step, env):
     policy.eval()
     average_episode_success = 0
     for episode in range(FLAGS.config.num_eval_episodes):
+        env.seed()
         observation = env.reset()
         video_recorder.reset(enabled=(episode == 0))
         while True:
@@ -112,7 +113,7 @@ def main(_):
     num_train_pairs = len(data_loaders["train"].dataset)
     num_valid_pairs = len(data_loaders["valid"].dataset)
     print(f"Training on {num_train_pairs} state, action pairs.")
-    print(f"Validatong on {num_valid_pairs} state, action pairs.")
+    print(f"Validating on {num_valid_pairs} state, action pairs.")
 
     policy = utils.get_policy(FLAGS.config).to(device)
     optimizer = utils.get_optimizer(FLAGS.config, policy)
@@ -155,7 +156,10 @@ def main(_):
                     valid_loss = eval_policy(policy, data_loaders["valid"], device)
                     logger.log_scalar(valid_loss, global_step, "valid/loss")
                     eval_success = rollout_policy(
-                        policy, device, video_recorder, global_step
+                        policy,
+                        video_recorder,
+                        global_step,
+                        env,
                     )
                     logger.log_scalar(eval_success, global_step, "valid/success")
 

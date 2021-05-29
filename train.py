@@ -2,19 +2,15 @@
 
 import os
 
-import gym
 import torch
 import torch.nn.functional as F
-import xmagical
 import yaml
 from absl import app, flags
-from ipdb import set_trace
 from ml_collections import ConfigDict, config_flags
 from torchkit import Logger, checkpoint
 
 import utils
 import video
-import wrappers
 
 FLAGS = flags.FLAGS
 
@@ -47,14 +43,6 @@ def setup_experiment(exp_dir: str):
             yaml.dump(ConfigDict.to_dict(FLAGS.config), fp)
 
 
-def load_env() -> gym.Env:
-    env_name = f"SweepToTop-{FLAGS.config.embodiment.capitalize()}-State-Allo-Demo-v0"
-    xmagical.register_envs()
-    env = gym.make(env_name)
-    env = wrappers.wrapper_from_config(FLAGS.config, env)
-    return env
-
-
 @torch.no_grad()
 def eval_policy(policy, valid_loader, device) -> float:
     policy.eval()
@@ -76,9 +64,7 @@ def rollout_policy(policy, device, video_recorder, global_step, env):
         observation = env.reset()
         video_recorder.reset(enabled=(episode == 0))
         while True:
-            obs_tensor = torch.from_numpy(observation).unsqueeze(0).float().to(device)
-            action_tensor = policy(obs_tensor)
-            action = action_tensor.cpu().flatten().numpy()
+            action = policy.act(observation)
             observation, _, done, info = env.step(action)
             video_recorder.record(env)
             if done:
@@ -94,7 +80,15 @@ def main(_):
     exp_dir = os.path.join(FLAGS.config.root_dir, FLAGS.experiment_name)
     setup_experiment(exp_dir)
 
-    env = load_env()
+    env = utils.load_xmagical_env(FLAGS.config)
+
+    # Dynamically set observation and action space values.
+    FLAGS.config.policy.input_dim = env.observation_space.shape[0]
+    FLAGS.config.policy.output_dim = env.action_space.shape[0]
+    FLAGS.config.policy.action_range = [
+        float(env.action_space.low.min()),
+        float(env.action_space.high.max()),
+    ]
 
     # Set RNG seeds.
     if FLAGS.config.seed is not None:
@@ -112,21 +106,13 @@ def main(_):
         device = torch.device("cpu")
 
     logger = Logger(exp_dir, FLAGS.resume)
-
     video_recorder = video.VideoRecorder(exp_dir if FLAGS.config.save_video else None)
 
     data_loaders = utils.get_bc_dataloaders(FLAGS.config)
     num_train_pairs = len(data_loaders["train"].dataset)
+    num_valid_pairs = len(data_loaders["valid"].dataset)
     print(f"Training on {num_train_pairs} state, action pairs.")
-
-    # Dynamically set observation and action space values.
-    obs, act = next(iter(data_loaders["valid"]))
-    FLAGS.config.policy.input_dim = obs.shape[-1]
-    FLAGS.config.policy.output_dim = act.shape[-1]
-    FLAGS.config.action_range = [
-        float(env.action_space.low.min()),
-        float(env.action_space.high.max()),
-    ]
+    print(f"Validatong on {num_valid_pairs} state, action pairs.")
 
     policy = utils.get_policy(FLAGS.config).to(device)
     optimizer = utils.get_optimizer(FLAGS.config, policy)

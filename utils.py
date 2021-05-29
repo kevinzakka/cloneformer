@@ -3,11 +3,13 @@
 import os.path as osp
 import random
 
+import gym
 import numpy as np
 import torch
 
 import data
 import policies
+import wrappers
 
 
 def seed_rng(config) -> None:
@@ -43,11 +45,12 @@ def get_bc_dataloaders(config):
 
 def get_policy(config):
     if config.policy.type == "mlp":
-        policy = policies.GaussianMLPPolicy(
+        policy = policies.MLPPolicy(
             input_dim=config.policy.input_dim,
             hidden_dim=config.policy.mlp.hidden_dim,
             output_dim=config.policy.output_dim,
             hidden_depth=config.policy.mlp.hidden_depth,
+            action_range=config.policy.action_range,
         )
     else:
         raise ValueError(f"{config.policy.type} is not a supported policy.")
@@ -60,3 +63,13 @@ def get_optimizer(config, model):
         lr=config.learning_rate,
         weight_decay=config.l2_reg,
     )
+
+
+def load_xmagical_env(config) -> gym.Env:
+    import xmagical
+
+    xmagical.register_envs()
+    env_name = f"SweepToTop-{config.embodiment.capitalize()}-State-Allo-Demo-v0"
+    env = gym.make(env_name)
+    env = wrappers.wrapper_from_config(config, env)
+    return env

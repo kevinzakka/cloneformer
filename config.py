@@ -62,7 +62,7 @@ def get_config():
     # ============================================== #
     config.policy = ml_collections.ConfigDict()
 
-    config.policy.type = "lstm"
+    config.policy.type = "mlp"
     config.policy.input_dim = obs_dim
     config.policy.output_dim = action_dim
     config.policy.action_range = action_range

@@ -118,9 +118,6 @@ def main(_):
     policy = utils.get_policy(FLAGS.config).to(device)
     optimizer = utils.get_optimizer(FLAGS.config, policy)
 
-    from ipdb import set_trace
-    set_trace()
-
     # Create checkpoint manager.
     checkpoint_dir = os.path.join(exp_dir, "checkpoints")
     checkpoint_manager = checkpoint.CheckpointManager(
@@ -181,7 +178,8 @@ def main(_):
         print("Caught keyboard interrupt. Saving model before quitting.")
 
     finally:
-        pass
+        checkpoint_manager.save(global_step)
+        logger.close()
 
 
 if __name__ == "__main__":

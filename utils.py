@@ -29,12 +29,24 @@ def get_bc_dataloaders(config):
     def _loader(split):
         dirname = osp.join(config.data.root, split, config.embodiment)
         dataset = data.BCDataset(dirname, from_state=True)
+        if config.policy.type == "mlp":
+            dataset = data.BCDataset(dirname, from_state=True)
+            collate_fn = None
+        elif config.policy.type == "lstm":
+            dataset = data.SequentialBCDataset(
+                dirname,
+                from_state=True,
+            )
+            collate_fn = dataset.collate_fn
+        else:
+            raise ValueError(f"No dataset for {config.policy.type} policies.")
         return torch.utils.data.DataLoader(
             dataset,
             batch_size=config.batch_size,
-            num_workers=0,  # 4 if torch.cuda.is_available() else 0,
+            num_workers=2 if torch.cuda.is_available() else 0,
             pin_memory=torch.cuda.is_available(),
             shuffle=True,
+            collate_fn=collate_fn,
         )
 
     return {
@@ -56,9 +68,13 @@ def get_policy(config):
     elif config.policy.type == "lstm":
         policy = policies.LSTMPolicy(
             input_dim=config.policy.input_dim,
-            hidden_dim=config.policy.lstm.hidden_dim,
+            mlp_hidden_dim=config.policy.lstm.mlp_hidden_dim,
+            mlp_hidden_depth=config.policy.lstm.mlp_hidden_depth,
+            mlp_dropout_prob=config.policy.lstm.mlp_dropout_prob,
+            lstm_hidden_dim=config.policy.lstm.lstm_hidden_dim,
             output_dim=config.policy.output_dim,
-            hidden_depth=config.policy.lstm.hidden_depth,
+            lstm_hidden_depth=config.policy.lstm.lstm_hidden_depth,
+            lstm_dropout_prob=config.policy.lstm.lstm_dropout_prob,
             action_range=config.policy.action_range,
         )
     else:

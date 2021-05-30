@@ -56,13 +56,14 @@ def get_config():
     config.batch_size = 128
     config.learning_rate = 1e-3
     config.l2_reg = 1e-5
+    config.clip_grad_norm = 1.0
 
     # ============================================== #
     # Policy params.
     # ============================================== #
     config.policy = ml_collections.ConfigDict()
 
-    config.policy.type = "mlp"
+    config.policy.type = "lstm"
     config.policy.input_dim = obs_dim
     config.policy.output_dim = action_dim
     config.policy.action_range = action_range
@@ -75,8 +76,12 @@ def get_config():
 
     # LSTM policy params.
     config.policy.lstm = ml_collections.ConfigDict()
-    config.policy.lstm.hidden_dim = 128
-    config.policy.lstm.hidden_depth = 3
+    config.policy.lstm.mlp_hidden_dim = 100
+    config.policy.lstm.mlp_hidden_depth = 1
+    config.policy.lstm.mlp_dropout_prob = 0.1
+    config.policy.lstm.lstm_hidden_dim = 32
+    config.policy.lstm.lstm_hidden_depth = 1
+    config.policy.lstm.lstm_dropout_prob = 0.2
 
     # ============================================== #
     # End of config file

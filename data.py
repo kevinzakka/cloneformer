@@ -3,6 +3,7 @@ import glob
 import json
 import os
 import os.path as osp
+import random
 from typing import Optional, Tuple
 
 import numpy as np
@@ -104,3 +105,63 @@ class BCDataset(torch.utils.data.Dataset):
         act = torch.FloatTensor(act)
 
         return obs, act
+
+
+class SequentialBCDataset(torch.utils.data.Dataset):
+    """A dataset of trajectories for behavior cloning with sequential policies."""
+
+    def __init__(
+        self,
+        dirname: str,
+        from_state: bool,
+    ) -> None:
+        # Get list of subdirectories, each containing a trajectory.
+        traj_dir = glob.glob(osp.join(dirname, "*"))
+        traj_dir = sorted(traj_dir, key=lambda x: int(os.path.basename(x)))
+
+        # Load the trajectories.
+        self.trajectories = [
+            Trajectory.load_from_folder(td, from_state=from_state) for td in traj_dir
+        ]
+
+    def __len__(self):
+        return len(self.trajectories)
+
+    def __getitem__(self, idx):
+        del idx
+
+        # Randomly sample a trajectory.
+        traj_idx = random.randint(0, len(self.trajectories) - 1)
+        traj = self.trajectories[traj_idx]
+
+        # Randomly sample a start idx within this trajectory.
+        # TODO(kevin): Do we want to ensure a min length?
+        idx = random.randint(0, len(traj) - 1)
+
+        # Return a slice of the trajectory starting from `idx` and spanning until the
+        # end of the trajectory.
+        obses = traj.obs[idx:]
+        acts = traj.acts[idx:]
+
+        # Discard the last observation.
+        obses = obses[:-1]
+        assert len(obses) == len(acts)
+
+        # Convert to tensors.
+        obses = torch.FloatTensor(obses)
+        acts = torch.FloatTensor(acts)
+
+        return obses, acts
+
+    @staticmethod
+    def collate_fn(data):
+        batch_obses = [d[0] for d in data]
+        batch_acts = [d[1] for d in data]
+
+        # Sort in decreasing seq_len order.
+        seq_lens = [-len(b) for b in batch_obses]
+        sort_idx = np.argsort(seq_lens)
+        batch_obses = [batch_obses[i] for i in sort_idx]
+        batch_acts = [batch_acts[i] for i in sort_idx]
+
+        return batch_obses, batch_acts

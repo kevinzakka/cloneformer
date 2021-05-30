@@ -12,6 +12,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, pad_se
 TensorType = torch.Tensor
 
 
+# Reference: https://github.com/denisyarats/drq
 def build_mlp(
     input_dim: int,
     hidden_dim: int,
@@ -21,6 +22,7 @@ def build_mlp(
     activation_fn=functools.partial(nn.ReLU, inplace=True),
     output_mod=None,
 ):
+    """Flexible MLP function creation."""
     if hidden_depth == 0:
         mods = [nn.Linear(input_dim, output_dim)]
         if dropout_prob > 0.0:

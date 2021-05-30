@@ -1,3 +1,8 @@
+"""Utilities for manipulating and loading expert demonstrations.
+
+Large parts adapted from: https://github.com/HumanCompatibleAI/imitation
+"""
+
 import dataclasses
 import glob
 import json

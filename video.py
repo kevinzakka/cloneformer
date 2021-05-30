@@ -1,4 +1,7 @@
-"""Video abstraction for rendering and saving rollouts to disk."""
+"""Video abstraction for rendering and saving rollouts to disk.
+
+Adapted from https://github.com/denisyarats/drq
+"""
 
 import os
 import typing

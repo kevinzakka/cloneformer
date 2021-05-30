@@ -1,4 +1,7 @@
-"""Evaluate a trained policy in an environment."""
+"""Evaluate a trained policy in an environment.
+
+Adapted from https://github.com/qxcv/magical
+"""
 
 import collections
 from typing import Sequence

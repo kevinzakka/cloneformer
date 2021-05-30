@@ -122,13 +122,16 @@ class LSTMPolicy(BasePolicy):
     ):
         super().__init__(*args, **kwargs)
 
+        out_mod = [nn.ReLU(inplace=True)]
+        if mlp_dropout_prob > 0.:
+           out_mod.append(nn.Dropout(mlp_dropout_prob))
         self.mlp = build_mlp(
             input_dim,
             mlp_hidden_dim,
             lstm_hidden_dim,
             mlp_hidden_depth,
             dropout_prob=mlp_dropout_prob,
-            output_mod=[nn.ReLU(inplace=True), nn.Dropout(mlp_dropout_prob)],
+            output_mod=out_mod,
         )
         self.norm = nn.LayerNorm(lstm_hidden_dim)
         self.lstm = nn.LSTM(

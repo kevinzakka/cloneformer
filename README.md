@@ -4,15 +4,20 @@ In this project, we'd like to apply Transformers with self-attention to a Behavi
 
 ## Preliminary Results
 
-Each policy is rolled out 100 times in the environment. We report the mean, standard deviation and 95% confidence intervals.
-
-<img src="images/success_rates.png" width="400"/>
+Each policy is rolled out 1000 times in the environment. We report the mean, standard deviation and 95% confidence intervals.
 
 |             | Mean Success | CI 95 Lower | CI 95 Upper | Std Dev. |
 |-------------|--------------|-------------|-------------|----------|
-| MLP         | 0.70         | 0.6263      | 0.7737      | 0.3715   |
-| LSTM        | 0.62         | 0.5413      | 0.6987      | 0.3964   |
+| MLP         | 0.73         | 0.71        | 0.75        | 0.35     |
+| LSTM        | 0.68         | 0.66        | 0.71        | 0.37     |
 | Transformer |              |             |             |          |
+
+And here are the loss and success curves:
+
+<p align="center">
+<img src="images/success_rates.png" width="400"/>
+<img src="images/losses.png" width="400"/>
+</p>
 
 ## Todos
 

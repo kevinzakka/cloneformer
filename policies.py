@@ -7,7 +7,8 @@ from typing import Optional, Sequence, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, pad_sequence
+from torch.nn.utils.rnn import (pack_padded_sequence, pad_packed_sequence,
+                                pad_sequence)
 
 TensorType = torch.Tensor
 

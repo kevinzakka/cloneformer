@@ -78,10 +78,10 @@ def get_config():
     config.policy.lstm = ml_collections.ConfigDict()
     config.policy.lstm.mlp_hidden_dim = 128
     config.policy.lstm.mlp_hidden_depth = 1
-    config.policy.lstm.mlp_dropout_prob = 0.
+    config.policy.lstm.mlp_dropout_prob = 0.0
     config.policy.lstm.lstm_hidden_dim = 32
     config.policy.lstm.lstm_hidden_depth = 2
-    config.policy.lstm.lstm_dropout_prob = 0.
+    config.policy.lstm.lstm_dropout_prob = 0.0
 
     # ============================================== #
     # End of config file

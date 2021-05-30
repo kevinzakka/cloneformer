@@ -7,5 +7,6 @@ pyyaml
 statsmodels
 tensorflow
 tensorboard
+matplotlib
 git+https://github.com/kevinzakka/torchkit.git
 git+https://github.com/kevinzakka/x-magical.git

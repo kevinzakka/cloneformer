@@ -7,7 +7,7 @@ from typing import Optional, Sequence, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence, pad_sequence, pad_packed_sequence
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, pad_sequence
 
 TensorType = torch.Tensor
 
@@ -120,9 +120,12 @@ class LSTMPolicy(BasePolicy):
         super().__init__(*args, **kwargs)
 
         self.mlp = build_mlp(
-            input_dim, mlp_hidden_dim, lstm_hidden_dim, mlp_hidden_depth,
+            input_dim,
+            mlp_hidden_dim,
+            lstm_hidden_dim,
+            mlp_hidden_depth,
             dropout_prob=mlp_dropout_prob,
-            output_mod=[nn.ReLU(inplace=True), nn.Dropout(mlp_dropout_prob)]
+            output_mod=[nn.ReLU(inplace=True), nn.Dropout(mlp_dropout_prob)],
         )
         self.norm = nn.LayerNorm(lstm_hidden_dim)
         self.lstm = nn.LSTM(
@@ -130,7 +133,7 @@ class LSTMPolicy(BasePolicy):
             hidden_size=lstm_hidden_dim,
             num_layers=lstm_hidden_depth,
             batch_first=True,
-            dropout=lstm_dropout_prob,
+            dropout=lstm_dropout_prob if lstm_hidden_depth > 1 else 0,
         )
         self.head = nn.Linear(lstm_hidden_dim, output_dim)
 

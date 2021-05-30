@@ -20,6 +20,8 @@ class EvaluationProtocol:
         self.policy = policy
         self.n_rollouts = n_rollouts
 
+        self.policy.eval()
+
     def obtain_scores(self, env: gym.Env) -> Sequence[float]:
         print(f"Performing {self.n_rollouts} evaluation rollouts.")
         eval_scores = []

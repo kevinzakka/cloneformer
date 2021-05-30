@@ -116,8 +116,8 @@ def main(_):
     data_loaders = utils.get_bc_dataloaders(FLAGS.config)
     num_train_pairs = len(data_loaders["train"].dataset)
     num_valid_pairs = len(data_loaders["valid"].dataset)
-    print(f"Training on {num_train_pairs} state, action pairs.")
-    print(f"Validating on {num_valid_pairs} state, action pairs.")
+    print(f"Training on {num_train_pairs} episodes.")
+    print(f"Validating on {num_valid_pairs} episodes.")
 
     policy = utils.get_policy(FLAGS.config).to(device)
     optimizer = utils.get_optimizer(FLAGS.config, policy)
@@ -142,7 +142,7 @@ def main(_):
                 policy.train()
                 optimizer.zero_grad()
                 out = policy(state)
-                loss = 0.
+                loss = 0.0
                 for o, a in zip(out, action):
                     loss += F.mse_loss(o, a)
                 loss = loss / len(out)

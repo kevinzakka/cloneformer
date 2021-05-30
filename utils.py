@@ -33,19 +33,16 @@ def get_bc_dataloaders(config):
             dataset = data.BCDataset(dirname, from_state=True)
             collate_fn = None
         elif config.policy.type == "lstm":
-            dataset = data.SequentialBCDataset(
-                dirname,
-                from_state=True,
-            )
+            dataset = data.SequentialBCDataset(dirname, from_state=True)
             collate_fn = dataset.collate_fn
         else:
             raise ValueError(f"No dataset for {config.policy.type} policies.")
         return torch.utils.data.DataLoader(
             dataset,
             batch_size=config.batch_size,
-            num_workers=2 if torch.cuda.is_available() else 0,
+            num_workers=4 if torch.cuda.is_available() else 0,
             pin_memory=torch.cuda.is_available(),
-            shuffle=True,
+            shuffle=True if split == "train" else False,
             collate_fn=collate_fn,
         )
 

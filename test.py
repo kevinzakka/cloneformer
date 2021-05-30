@@ -55,6 +55,7 @@ def main(_):
         device = torch.device("cpu")
 
     policy = utils.get_policy(FLAGS.config).to(device)
+    policy.eval()
 
     # Load latest checkpoint.
     checkpoint_dir = os.path.join(FLAGS.experiment_path, "checkpoints")

@@ -62,9 +62,11 @@ python train.py --experiment_name="mlp_policy" \
 
 ## Preliminary Results
 
+Each policy is rolled out 100 times in the environment. We report the mean, standard deviation and 95% confidence intervals.
+
 |             | Mean Success | CI 95 Lower | CI 95 Upper | Std Dev. |
 |-------------|--------------|-------------|-------------|----------|
-| MLP         | 0.76         | 0.6948      | 0.8252      | 0.3285   |
-| LSTM        |              |             |             |          |
+| MLP         | 0.70         | 0.6263      | 0.7737      | 0.3715   |
+| LSTM        | 0.62         | 0.5413      | 0.6987      | 0.3964   |
 | Transformer |              |             |             |          |
 

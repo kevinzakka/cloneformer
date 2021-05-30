@@ -124,6 +124,8 @@ class SequentialBCDataset(torch.utils.data.Dataset):
             Trajectory.load_from_folder(td, from_state=from_state) for td in traj_dir
         ]
 
+        self.min_seq_len = 0
+
     def __len__(self):
         return len(self.trajectories)
 
@@ -135,8 +137,7 @@ class SequentialBCDataset(torch.utils.data.Dataset):
         traj = self.trajectories[traj_idx]
 
         # Randomly sample a start idx within this trajectory.
-        # TODO(kevin): Do we want to ensure a min length?
-        idx = random.randint(0, len(traj) - 1)
+        idx = random.randint(0, len(traj) - 1 - self.min_seq_len)
 
         # Return a slice of the trajectory starting from `idx` and spanning until the
         # end of the trajectory.

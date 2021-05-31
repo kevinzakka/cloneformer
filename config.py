@@ -64,16 +64,16 @@ def get_config():
     # ============================================== #
     config.policy = ml_collections.ConfigDict()
 
-    config.policy.type = "lstm"
+    config.policy.type = "mlp"
     config.policy.input_dim = obs_dim
     config.policy.output_dim = action_dim
     config.policy.action_range = action_range
 
     # MLP policy params.
     config.policy.mlp = ml_collections.ConfigDict()
-    config.policy.mlp.hidden_dim = 128
-    config.policy.mlp.hidden_depth = 2
-    config.policy.mlp.dropout_prob = 0.1
+    config.policy.mlp.hidden_dim = 64
+    config.policy.mlp.hidden_depth = 3
+    config.policy.mlp.dropout_prob = 0.2
 
     # LSTM policy params.
     config.policy.lstm = ml_collections.ConfigDict()

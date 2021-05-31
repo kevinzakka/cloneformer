@@ -8,6 +8,7 @@ import yaml
 from absl import app, flags
 from ml_collections import ConfigDict, config_flags
 from torchkit import Logger, checkpoint
+from torchkit.utils.torch_utils import get_total_params
 
 import utils
 import video
@@ -116,6 +117,8 @@ def main(_):
     print(f"Validating on {num_valid_pairs} state, action pairs.")
 
     policy = utils.get_policy(FLAGS.config).to(device)
+    print(policy)
+    get_total_params(policy)
     optimizer = utils.get_optimizer(FLAGS.config, policy)
 
     # Create checkpoint manager.

@@ -20,7 +20,7 @@ A robotic gripper agent is tasked with sweeping 3 square debris into the goal zo
 
 When training MLP-like policies for BC, we treat our dataset of expert demonstrations as one big blob of iid. (state, action) pairs. Training simply amounts to performing supervised learning on this blob, with the goal of learning a mapping from states to actions that minimizes a surrogate loss measuring how well our mapping mimics the expert policy. In our setting, the action space is continuous, so we can view the problem as one of regression and minimize the mean squared error (MSE) loss.
 
-**Implementation.** Our MLP policy has 3 linear layers with a hidden size of 128 and dropout of 0.1. It contains 40k total parameters.
+**Implementation.** Our MLP policy has 3 linear layers with a hidden size of 128 and dropout of 0.1. It contains ~24k total parameters.
 
 ```python
 +----------------+------------+
@@ -47,7 +47,7 @@ There's different subtle ways in which we can train recurrent policies. Sutskeve
 
 We tried both methods above and the latter with fixed-size sampling did the best.
 
-**Implementation.** Our LSTM policy is composed on an MLP base followed by layer normalization, followed by a two-layer LSTM and final projection head.
+**Implementation.** Our LSTM policy is composed on an MLP base followed by layer normalization, followed by a two-layer LSTM and final projection head. It contains ~27k parameters.
 
 ```python
 +-------------------+------------+
@@ -83,8 +83,8 @@ Each policy is rolled out 1000 times in the environment. We report the mean, sta
 
 |             | Mean Success | CI 95 Lower | CI 95 Upper | Std Dev. |
 |-------------|--------------|-------------|-------------|----------|
-| MLP         | 0.73         | 0.71        | 0.75        | 0.35     |
-| LSTM        | 0.68         | 0.66        | 0.71        | 0.37     |
+| MLP         | 0.70         | 0.68        | 0.73        | 0.35     |
+| LSTM        | 0.67         | 0.64        | 0.69        | 0.34     |
 | Transformer |              |             |             |          |
 
 And here are the loss and success curves:

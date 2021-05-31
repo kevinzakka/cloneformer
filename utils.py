@@ -31,10 +31,10 @@ def get_bc_dataloaders(config):
         dataset = data.BCDataset(dirname, from_state=True)
         if config.policy.type == "mlp":
             dataset = data.BCDataset(dirname, from_state=True)
-            collate_fn = None
         elif config.policy.type == "lstm":
-            dataset = data.SequentialBCDataset(dirname, from_state=True)
-            collate_fn = dataset.collate_fn
+            dataset = data.SequentialBCDataset(
+                dirname, from_state=True, seq_len=config.seq_len
+            )
         else:
             raise ValueError(f"No dataset for {config.policy.type} policies.")
         return torch.utils.data.DataLoader(
@@ -43,7 +43,7 @@ def get_bc_dataloaders(config):
             num_workers=4 if torch.cuda.is_available() else 0,
             pin_memory=torch.cuda.is_available(),
             shuffle=True if split == "train" else False,
-            collate_fn=collate_fn,
+            collate_fn=None,
         )
 
     return {

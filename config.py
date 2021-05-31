@@ -53,10 +53,11 @@ def get_config():
     config.eval_frequency = 10_000
     config.logging_frequency = 1_000
     config.checkpoint_frequency = 25_000
-    config.batch_size = 32
+    config.batch_size = 128
     config.learning_rate = 3e-4
     config.l2_reg = 1e-5
-    config.clip_grad_norm = 5.0
+    config.clip_grad_norm = 1.0
+    config.seq_len = 20
 
     # ============================================== #
     # Policy params.
@@ -71,17 +72,17 @@ def get_config():
     # MLP policy params.
     config.policy.mlp = ml_collections.ConfigDict()
     config.policy.mlp.hidden_dim = 128
-    config.policy.mlp.hidden_depth = 3
+    config.policy.mlp.hidden_depth = 2
     config.policy.mlp.dropout_prob = 0.1
 
     # LSTM policy params.
     config.policy.lstm = ml_collections.ConfigDict()
-    config.policy.lstm.mlp_hidden_dim = 128
-    config.policy.lstm.mlp_hidden_depth = 1
-    config.policy.lstm.mlp_dropout_prob = 0.0
+    config.policy.lstm.mlp_hidden_dim = 64
+    config.policy.lstm.mlp_hidden_depth = 2
+    config.policy.lstm.mlp_dropout_prob = 0.1
     config.policy.lstm.lstm_hidden_dim = 32
     config.policy.lstm.lstm_hidden_depth = 2
-    config.policy.lstm.lstm_dropout_prob = 0.0
+    config.policy.lstm.lstm_dropout_prob = 0.2
 
     # ============================================== #
     # End of config file

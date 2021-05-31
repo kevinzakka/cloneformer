@@ -8,6 +8,7 @@ import yaml
 from absl import app, flags
 from ml_collections import config_flags
 from torchkit import checkpoint
+from torchkit.utils.torch_utils import get_total_params
 
 import evaluation
 import utils
@@ -56,6 +57,7 @@ def main(_):
 
     policy = utils.get_policy(FLAGS.config).to(device)
     policy.eval()
+    get_total_params(policy)
 
     # Load latest checkpoint.
     checkpoint_dir = os.path.join(FLAGS.experiment_path, "checkpoints")

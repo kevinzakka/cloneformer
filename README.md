@@ -20,7 +20,7 @@ A robotic gripper agent is tasked with sweeping 3 square debris into the goal zo
 
 When training MLP-like policies for BC, we treat our dataset of expert demonstrations as one big blob of iid. (state, action) pairs. Training simply amounts to performing supervised learning on this blob, with the goal of learning a mapping from states to actions that minimizes a surrogate loss measuring how well our mapping mimics the expert policy. In our setting, the action space is continuous, so we can view the problem as one of regression and minimize the mean squared error (MSE) loss.
 
-**Implementation.** Our MLP policy has 4 linear layers with a hidden size of 128 and dropout of 0.1. It contains 40k total parameters.
+**Implementation.** Our MLP policy has 3 linear layers with a hidden size of 128 and dropout of 0.1. It contains 40k total parameters.
 
 ```python
 +----------------+------------+
@@ -30,12 +30,10 @@ When training MLP-like policies for BC, we treat our dataset of expert demonstra
 |  trunk.0.bias  |    128     |
 | trunk.3.weight |   16384    |
 |  trunk.3.bias  |    128     |
-| trunk.6.weight |   16384    |
-|  trunk.6.bias  |    128     |
-| trunk.9.weight |    384     |
-|  trunk.9.bias  |     3      |
+| trunk.6.weight |    384     |
+|  trunk.6.bias  |     3      |
 +----------------+------------+
-Total Trainable Params: 40,067
+Total Trainable Params: 23,555
 ```
 
 **LSTM**.
@@ -45,18 +43,22 @@ When training recurrent policies like an LSTM, we preserve the sequential nature
 There's different subtle ways in which we can train recurrent policies. Sutskever's thesis [2] is a great background read. We considered two scenarios for our setup:
 
 * We can enforce a batch size of 1. Our dataloader then loads an entire episode and feeds that into the LSTM. To deal with potentially very long trajectory lengths, we can use truncated backprop through time with an aptly chosen value of k. This is what is done in [1].
-* We can choose to slice our trajectories, treating each slice as a separate training case. Our dataloader can randomly sample a start index in a trajectory and then sample until the end of the sequence, potentially enforcing some minimum sequence length. We can then pad these variable length sequences to fit them into a fixed-size batch and feed them into the LSTM. Alternatively, we can enforce that the dataloader always samples slices of fixed length and eliminate the need for padding (note the default padding value of 0 can mess up the distribution of the input).
+* We can choose to slice our trajectories, treating each slice as a separate training case. Our dataloader can randomly sample a start index in a trajectory and then sample until the end of the sequence, potentially enforcing some minimum sequence length. We can then pad these variable length sequences to fit them into a fixed-size batch and feed them into the LSTM. Alternatively, we can force the dataloader to always sample slices of fixed length and eliminate the need for padding -- in fact, note the default padding value of 0 may not always be the best choice for your data.
 
-**Implementation.** Our LSTM policy is composed on an MLP head followed by layer normalization, followed by a two-layer LSTM and final projection head.
+We tried both methods above and the latter with fixed-size sampling did the best.
+
+**Implementation.** Our LSTM policy is composed on an MLP base followed by layer normalization, followed by a two-layer LSTM and final projection head.
 
 ```python
 +-------------------+------------+
 |      Modules      | Parameters |
 +-------------------+------------+
-|    mlp.0.weight   |    6528    |
-|     mlp.0.bias    |    128     |
-|    mlp.2.weight   |    4096    |
-|     mlp.2.bias    |     32     |
+|    mlp.0.weight   |    3264    |
+|     mlp.0.bias    |     64     |
+|    mlp.3.weight   |    4096    |
+|     mlp.3.bias    |     64     |
+|    mlp.6.weight   |    2048    |
+|     mlp.6.bias    |     32     |
 |    norm.weight    |     32     |
 |     norm.bias     |     32     |
 | lstm.weight_ih_l0 |    4096    |
@@ -70,7 +72,7 @@ There's different subtle ways in which we can train recurrent policies. Sutskeve
 |    head.weight    |     96     |
 |     head.bias     |     3      |
 +-------------------+------------+
-Total Trainable Params: 27,843
+Total Trainable Params: 26,627
 ```
 
 **Transformer**.

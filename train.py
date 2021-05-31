@@ -139,6 +139,10 @@ def main(_):
                 out = policy(state)
                 loss = F.mse_loss(out, action)
                 loss.backward()
+                if FLAGS.config.policy.type == "lstm":
+                    torch.nn.utils.clip_grad_norm_(
+                        policy.parameters(), FLAGS.config.clip_grad_norm
+                    )
                 optimizer.step()
 
                 if not global_step % FLAGS.config.logging_frequency:

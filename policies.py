@@ -123,8 +123,8 @@ class LSTMPolicy(BasePolicy):
         super().__init__(*args, **kwargs)
 
         out_mod = [nn.ReLU(inplace=True)]
-        if mlp_dropout_prob > 0.:
-           out_mod.append(nn.Dropout(mlp_dropout_prob))
+        if mlp_dropout_prob > 0.0:
+            out_mod.append(nn.Dropout(mlp_dropout_prob))
         self.mlp = build_mlp(
             input_dim,
             mlp_hidden_dim,
@@ -143,34 +143,16 @@ class LSTMPolicy(BasePolicy):
         )
         self.head = nn.Linear(lstm_hidden_dim, output_dim)
 
-    def forward(self, x_list: Sequence[TensorType]) -> Sequence[TensorType]:
-        # Forward through the MLP and layer norm.
-        out = [self.norm(self.mlp(x)) for x in x_list]
-
-        # Pad and pack.
-        seq_lens = [len(o) for o in out]
-        out = pad_sequence(out, batch_first=True)
-        out = pack_padded_sequence(out, lengths=seq_lens, batch_first=True)
-
-        # Forward through LSTM.
+    def forward(self, x: TensorType) -> TensorType:
+        out = self.norm(self.mlp(x))
         out, (ht, ct) = self.lstm(out)
-
-        # Unpack sequence and remove padding.
-        out, input_sizes = pad_packed_sequence(out, batch_first=True)
-        out_trunk = []
-        for out_batch, size in zip(out, input_sizes):
-            out_trunk.append(out_batch[:size])
-
-        # Forward through final projection head.
-        out = [self.head(o) for o in out_trunk]
-
+        out = self.head(out)
         return out
 
     def act(self, obs: np.ndarray) -> np.ndarray:
-        obs_tensor = torch.from_numpy(obs).unsqueeze(0).float()
+        obs_tensor = torch.from_numpy(obs).unsqueeze(0).unsqueeze(0).float()
         obs_tensor = obs_tensor.to(next(self.parameters()).device)
-        obs_tensor_list = [obs_tensor]
-        action_tensor = self.forward(obs_tensor_list)[0]
+        action_tensor = self.forward(obs_tensor)
         action_tensor = action_tensor.clamp(*self.action_range)
-        action = action_tensor[0].cpu().detach().numpy()
+        action = action_tensor[0, 0].cpu().detach().numpy()
         return action

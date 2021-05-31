@@ -119,6 +119,7 @@ class SequentialBCDataset(torch.utils.data.Dataset):
         self,
         dirname: str,
         from_state: bool,
+        seq_len: int,
     ) -> None:
         # Get list of subdirectories, each containing a trajectory.
         traj_dir = glob.glob(osp.join(dirname, "*"))
@@ -129,28 +130,21 @@ class SequentialBCDataset(torch.utils.data.Dataset):
             Trajectory.load_from_folder(td, from_state=from_state) for td in traj_dir
         ]
 
-        self.min_seq_len = 0
+        self.seq_len = seq_len
 
     def __len__(self):
         return len(self.trajectories)
 
     def __getitem__(self, idx):
-        del idx
+        traj = self.trajectories[idx]
 
-        # Randomly sample a trajectory.
-        traj_idx = random.randint(0, len(self.trajectories) - 1)
-        traj = self.trajectories[traj_idx]
+        # Randomly sample a contiguous window within this sequence.
+        seq_len = len(traj)
+        start = random.randrange(seq_len - self.seq_len)
+        end = start + self.seq_len
+        obses = traj.obs[start:end]
+        acts = traj.acts[start:end]
 
-        # Randomly sample a start idx within this trajectory.
-        idx = random.randint(0, len(traj) - 1 - self.min_seq_len)
-
-        # Return a slice of the trajectory starting from `idx` and spanning until the
-        # end of the trajectory.
-        obses = traj.obs[idx:]
-        acts = traj.acts[idx:]
-
-        # Discard the last observation.
-        obses = obses[:-1]
         assert len(obses) == len(acts)
 
         # Convert to tensors.
@@ -158,16 +152,3 @@ class SequentialBCDataset(torch.utils.data.Dataset):
         acts = torch.FloatTensor(acts)
 
         return obses, acts
-
-    @staticmethod
-    def collate_fn(data):
-        batch_obses = [d[0] for d in data]
-        batch_acts = [d[1] for d in data]
-
-        # Sort in decreasing seq_len order.
-        seq_lens = [-len(b) for b in batch_obses]
-        sort_idx = np.argsort(seq_lens)
-        batch_obses = [batch_obses[i] for i in sort_idx]
-        batch_acts = [batch_acts[i] for i in sort_idx]
-
-        return batch_obses, batch_acts

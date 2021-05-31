@@ -49,12 +49,10 @@ def eval_policy(policy, valid_loader, device) -> float:
     valid_loss = 0.0
     num_valid = 0
     for state, action in valid_loader:
-        state = [s.to(device) for s in state]
-        action = [a.to(device) for a in action]
+        state, action = state.to(device), action.to(device)
         out = policy(state)
-        for o, a in zip(out, action):
-            valid_loss += F.mse_loss(o, a)
-            num_valid += 1
+        valid_loss += F.mse_loss(out, action)
+        num_valid += 1
     valid_loss /= num_valid
     print(f"Validation loss: {valid_loss:.6f}")
     return valid_loss
@@ -136,16 +134,12 @@ def main(_):
     try:
         while not complete:
             for state, action in data_loaders["train"]:
-                state = [s.to(device) for s in state]
-                action = [a.to(device) for a in action]
+                state, action = state.to(device), action.to(device)
 
                 policy.train()
                 optimizer.zero_grad()
                 out = policy(state)
-                loss = 0.0
-                for o, a in zip(out, action):
-                    loss += F.mse_loss(o, a)
-                loss = loss / len(out)
+                loss = F.mse_loss(out, action)
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(
                     policy.parameters(), FLAGS.config.clip_grad_norm

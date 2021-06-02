@@ -81,6 +81,8 @@ Let's try to formulate behavior cloning as sequence modeling of expert demonstra
 
 Our trajectory data will simply be the sequence of states and actions encountered by the expert policy, e.g., `T_e = {s_0, a_0, s_1, a_1, ..., s_T, a_T}` and the GPT-model will be tasked with learning to generate such a trajectory. At test time, we'll condition on the initial state, execute the action, observe the next state, feed it back to the model and autoregressively generate the desired action sequence.
 
+TODO: Architecture details and training setup.
+
 ## Results
 
 Each policy is rolled out 1000 times in the environment. We report the mean, standard deviation and 95% confidence intervals.

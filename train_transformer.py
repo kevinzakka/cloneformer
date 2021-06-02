@@ -6,13 +6,13 @@ import torch
 import torch.nn.functional as F
 import yaml
 from absl import app, flags
+from ipdb import set_trace
 from ml_collections import ConfigDict, config_flags
 from torchkit import Logger, checkpoint
 from torchkit.utils.torch_utils import get_total_params
 
 import utils
 import video
-from ipdb import set_trace
 
 FLAGS = flags.FLAGS
 
@@ -52,9 +52,13 @@ def eval_policy(policy, valid_loader, device) -> float:
     for state, action in valid_loader:
         state, action = state.to(device), action.to(device)
         (s_pred, a_pred), (s_gt, a_gt) = policy([state, action])
-        action_loss = F.mse_loss(a_pred, a_gt, reduction='none').sum(dim=-1).sum(dim=-1).mean()
-        state_loss = F.mse_loss(s_pred, s_gt, reduction='none').sum(dim=-1).sum(dim=-1).mean()
-        valid_loss += (action_loss + state_loss)
+        action_loss = (
+            F.mse_loss(a_pred, a_gt, reduction="none").sum(dim=-1).sum(dim=-1).mean()
+        )
+        state_loss = (
+            F.mse_loss(s_pred, s_gt, reduction="none").sum(dim=-1).sum(dim=-1).mean()
+        )
+        valid_loss += action_loss + state_loss
     valid_loss /= len(valid_loader.dataset)
     print(f"Validation loss: {valid_loss:.6f}")
     return valid_loss
@@ -129,7 +133,9 @@ def main(_):
     policy = utils.get_policy(FLAGS.config).to(device)
     print(policy)
     get_total_params(policy)
-    optimizer = utils.get_optimizer(FLAGS.config, policy)
+    optimizer = policy.configure_optimizers(
+        FLAGS.config.learning_rate, (0.9, 0.95), FLAGS.config.l2_reg
+    )
 
     # Create checkpoint manager.
     checkpoint_dir = os.path.join(exp_dir, "checkpoints")
@@ -150,8 +156,18 @@ def main(_):
                 policy.train()
                 optimizer.zero_grad()
                 (s_pred, a_pred), (s_gt, a_gt) = policy([state, action])
-                action_loss = F.mse_loss(a_pred, a_gt, reduction='none').sum(dim=-1).sum(dim=-1).mean()
-                state_loss = F.mse_loss(s_pred, s_gt, reduction='none').sum(dim=-1).sum(dim=-1).mean()
+                action_loss = (
+                    F.mse_loss(a_pred, a_gt, reduction="none")
+                    .sum(dim=-1)
+                    .sum(dim=-1)
+                    .mean()
+                )
+                state_loss = (
+                    F.mse_loss(s_pred, s_gt, reduction="none")
+                    .sum(dim=-1)
+                    .sum(dim=-1)
+                    .mean()
+                )
                 loss = action_loss + state_loss
                 loss.backward()
                 optimizer.step()

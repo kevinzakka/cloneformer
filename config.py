@@ -49,7 +49,7 @@ def get_config():
     # Training parameters.
     # ================================================= #
     config.num_eval_episodes = 100
-    config.train_max_iters = 100_000
+    config.train_max_iters = 1_000_000
     config.eval_frequency = 10_000
     config.logging_frequency = 100
     config.checkpoint_frequency = 25_000
@@ -59,7 +59,7 @@ def get_config():
     config.clip_grad_norm = 1.0
 
     # Used for transformer and LSTM training.
-    config.seq_len = 6
+    config.seq_len = 5
 
     # ============================================== #
     # Policy params.
@@ -74,8 +74,8 @@ def get_config():
     # MLP policy params.
     config.policy.mlp = ml_collections.ConfigDict()
     config.policy.mlp.hidden_dim = 128
-    config.policy.mlp.hidden_depth = 4
-    config.policy.mlp.dropout_prob = 0.2
+    config.policy.mlp.hidden_depth = 2
+    config.policy.mlp.dropout_prob = 0.1
 
     # LSTM policy params.
     config.policy.lstm = ml_collections.ConfigDict()
@@ -88,8 +88,8 @@ def get_config():
 
     # Autoregressive Transformer policy params.
     config.policy.xformer = ml_collections.ConfigDict()
-    config.policy.xformer.emb_dim = 32
-    config.policy.xformer.num_blocks = 1
+    config.policy.xformer.emb_dim = 64
+    config.policy.xformer.num_blocks = 2
     config.policy.xformer.num_heads = 4
 
     # ============================================== #

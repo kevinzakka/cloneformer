@@ -33,8 +33,10 @@ def get_bc_dataloaders(config):
             dataset = data.BCDataset(dirname, from_state=True)
         elif config.policy.type in ["lstm", "transformer"]:
             dataset = data.SequentialBCDataset(
-                dirname, from_state=True, seq_len=config.seq_len,
-                autoregressive=config.policy.type=="transformer",
+                dirname,
+                from_state=True,
+                seq_len=config.seq_len,
+                autoregressive=config.policy.type == "transformer",
             )
         else:
             raise ValueError(f"No dataset for {config.policy.type} policies.")

@@ -52,8 +52,9 @@ def eval_policy(policy, valid_loader, device) -> float:
         state, action = state.to(device), action.to(device)
         out = policy(state)
         if FLAGS.config.policy.type == "lstm":
-            valid_loss += F.mse_loss(out, action, reduction='none').sum(
-                dim=-1).sum(dim=-1).mean()
+            valid_loss += (
+                F.mse_loss(out, action, reduction="none").sum(dim=-1).sum(dim=-1).mean()
+            )
         else:
             valid_loss += F.mse_loss(out, action)
     valid_loss /= len(valid_loader.dataset)
@@ -145,8 +146,12 @@ def main(_):
                 optimizer.zero_grad()
                 out = policy(state)
                 if FLAGS.config.policy.type == "lstm":
-                    loss = F.mse_loss(out, action, reduction='none').sum(
-                        dim=-1).sum(dim=-1).mean()
+                    loss = (
+                        F.mse_loss(out, action, reduction="none")
+                        .sum(dim=-1)
+                        .sum(dim=-1)
+                        .mean()
+                    )
                 else:
                     loss = F.mse_loss(out, action)
                 loss.backward()

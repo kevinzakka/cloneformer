@@ -31,16 +31,19 @@ def get_bc_dataloaders(config):
         dataset = data.BCDataset(dirname, from_state=True)
         if config.policy.type == "mlp":
             dataset = data.BCDataset(dirname, from_state=True)
-        elif config.policy.type == "lstm":
+        elif config.policy.type in ["lstm", "transformer"]:
             dataset = data.SequentialBCDataset(
-                dirname, from_state=True, seq_len=config.seq_len
+                dirname,
+                from_state=True,
+                seq_len=config.seq_len,
+                autoregressive=config.policy.type == "transformer",
             )
         else:
             raise ValueError(f"No dataset for {config.policy.type} policies.")
         return torch.utils.data.DataLoader(
             dataset,
             batch_size=config.batch_size,
-            num_workers=4 if torch.cuda.is_available() else 0,
+            num_workers=0,
             pin_memory=torch.cuda.is_available(),
             shuffle=True if split == "train" else False,
             collate_fn=None,
@@ -72,6 +75,16 @@ def get_policy(config):
             output_dim=config.policy.output_dim,
             lstm_hidden_depth=config.policy.lstm.lstm_hidden_depth,
             lstm_dropout_prob=config.policy.lstm.lstm_dropout_prob,
+            action_range=config.policy.action_range,
+        )
+    elif config.policy.type == "transformer":
+        policy = policies.AutoregressiveTransformerPolicy(
+            state_dim=config.policy.input_dim,
+            action_dim=config.policy.output_dim,
+            emb_dim=config.policy.xformer.emb_dim,
+            num_blocks=config.policy.xformer.num_blocks,
+            num_heads=config.policy.xformer.num_heads,
+            seq_len=config.seq_len,
             action_range=config.policy.action_range,
         )
     else:

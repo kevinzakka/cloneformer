@@ -69,7 +69,10 @@ def main(_):
     checkpoint_manager.restore_or_initialize()
 
     # Evaluate and dump result to disk.
-    protocol = evaluation.EvaluationProtocol(policy, FLAGS.n_rollouts)
+    if FLAGS.config.policy.type == "transformer":
+        protocol = evaluation.AEEvaluationProtocol(policy, FLAGS.n_rollouts, device)
+    else:
+        protocol = evaluation.EvaluationProtocol(policy, FLAGS.n_rollouts, device)
     result = protocol.do_eval(env)
     for key, val in result._asdict().items():
         print(f"{key}: {val:4f}")

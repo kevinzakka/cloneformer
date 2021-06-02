@@ -16,9 +16,9 @@ A robotic gripper agent is tasked with sweeping 3 square debris into the goal zo
 
 ## Policies
 
-**Multi-layer Perceptron (MLP)**.
+**MLP**.
 
-When training MLP-like policies for BC, we treat our dataset of expert demonstrations as one big blob of iid. (state, action) pairs. Training simply amounts to performing supervised learning on this blob, with the goal of learning a mapping from states to actions that minimizes a surrogate loss measuring how well our mapping mimics the expert policy. In our setting, the action space is continuous, so we can view the problem as one of regression and minimize the mean squared error (MSE) loss.
+When training Multi-Layer Perceptron (MLP) policies for BC, we treat our dataset of expert demonstrations as one big blob of iid (state, action) pairs. Training simply amounts to performing supervised learning on this blob, with the goal of learning a mapping from states to actions that minimizes a surrogate loss measuring how well our mapping mimics the expert policy. In our setting, the action space is continuous, so we can view the problem as one of regression and minimize the mean squared error (MSE) loss.
 
 **Implementation.** Our MLP policy has 3 linear layers with a hidden size of 128 and dropout of 0.1. It contains ~24k total parameters.
 
@@ -77,6 +77,12 @@ Total Trainable Params: 26,627
 
 **Transformer**.
 
+Let's try to formulate behavior cloning as sequence modeling of expert demonstrations. Specifically, we can take our sequences of states and actions and train an autoregressive generative policy with a GPT-like Transformer architecture and training objective [3].
+
+Our trajectory data will simply be the sequence of states and actions encountered by the expert policy, e.g., `T_e = {s_0, a_0, s_1, a_1, ..., s_T, a_T}` and the GPT-model will be tasked with learning to generate such a trajectory. At test time, we'll condition on the initial state, execute the action, observe the next state, feed it back to the model and autoregressively generate the desired action sequence.
+
+TODO: Architecture details and training setup.
+
 ## Results
 
 Each policy is rolled out 1000 times in the environment. We report the mean, standard deviation and 95% confidence intervals.
@@ -84,7 +90,7 @@ Each policy is rolled out 1000 times in the environment. We report the mean, sta
 |             | Mean Success | CI 95 Lower | CI 95 Upper | Std Dev. |
 |-------------|--------------|-------------|-------------|----------|
 | MLP         | 0.70         | 0.68        | 0.73        | 0.35     |
-| LSTM        | 0.67         | 0.64        | 0.69        | 0.34     |
+| LSTM        | 0.68         | 0.66        | 0.70        | 0.36     |
 | Transformer |              |             |             |          |
 
 And here are the loss and success curves:
@@ -136,3 +142,4 @@ You can then visualize the tensorboard logs in the results directory with `tenso
 
 * [1] P. Florence, L. Manuelli, R. Tedrake. *Self-Supervised Correspondence in Visuomotor Policy Learning*, IEEE Robotics and Automation Letters, 2020.
 * [2] I. Sutskever, *Training Recurrent Neural Networks*, 2013.
+* [3] A. Radford, K. Narasimhan, T. Salimans, I. Sutskever. *Improving Language Understanding by Generative Pre-Training*, 2018.

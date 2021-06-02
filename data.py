@@ -120,10 +120,13 @@ class SequentialBCDataset(torch.utils.data.Dataset):
         dirname: str,
         from_state: bool,
         seq_len: int,
+        autoregressive: bool = False,
     ) -> None:
         # Get list of subdirectories, each containing a trajectory.
         traj_dir = glob.glob(osp.join(dirname, "*"))
         traj_dir = sorted(traj_dir, key=lambda x: int(os.path.basename(x)))
+
+        # traj_dir = traj_dir[:4]
 
         # Load the trajectories.
         self.trajectories = [
@@ -131,6 +134,7 @@ class SequentialBCDataset(torch.utils.data.Dataset):
         ]
 
         self.seq_len = seq_len
+        self.autoregressive = autoregressive
 
     def __len__(self):
         return len(self.trajectories)
@@ -139,12 +143,12 @@ class SequentialBCDataset(torch.utils.data.Dataset):
         traj = self.trajectories[idx]
 
         # Randomly sample a contiguous window within this sequence.
-        seq_len = len(traj)
-        start = random.randrange(seq_len - self.seq_len)
-        end = start + self.seq_len
+        seq_len = self.seq_len
+        traj_len = len(traj)
+        start = random.randrange(traj_len - seq_len)
+        end = start + seq_len
         obses = traj.obs[start:end]
         acts = traj.acts[start:end]
-
         assert len(obses) == len(acts)
 
         # Convert to tensors.

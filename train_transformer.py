@@ -1,4 +1,4 @@
-"""Train a policy."""
+"""Autoregressive behavior cloning with Transformers."""
 
 import os
 
@@ -12,6 +12,7 @@ from torchkit.utils.torch_utils import get_total_params
 
 import utils
 import video
+from ipdb import set_trace
 
 FLAGS = flags.FLAGS
 
@@ -50,28 +51,33 @@ def eval_policy(policy, valid_loader, device) -> float:
     valid_loss = 0.0
     for state, action in valid_loader:
         state, action = state.to(device), action.to(device)
-        out = policy(state)
-        if FLAGS.config.policy.type == "lstm":
-            valid_loss += F.mse_loss(out, action, reduction='none').sum(
-                dim=-1).sum(dim=-1).mean()
-        else:
-            valid_loss += F.mse_loss(out, action)
+        (s_pred, a_pred), (s_gt, a_gt) = policy([state, action])
+        action_loss = F.mse_loss(a_pred, a_gt, reduction='none').sum(dim=-1).sum(dim=-1).mean()
+        state_loss = F.mse_loss(s_pred, s_gt, reduction='none').sum(dim=-1).sum(dim=-1).mean()
+        valid_loss += (action_loss + state_loss)
     valid_loss /= len(valid_loader.dataset)
     print(f"Validation loss: {valid_loss:.6f}")
     return valid_loss
 
 
 @torch.no_grad()
-def rollout_policy(policy, video_recorder, global_step, env):
+def rollout_policy(policy, video_recorder, global_step, env, device):
     policy.eval()
     average_episode_success = 0
     for episode in range(FLAGS.config.num_eval_episodes):
         env.seed()
-        observation = env.reset()
+        obs = env.reset()
         video_recorder.reset(enabled=(episode == 0))
+        state_seq = [torch.from_numpy(obs).unsqueeze(0).float().to(device)]
+        action_seq = []
         while True:
-            action = policy.act(observation)
-            observation, _, done, info = env.step(action)
+            action_tensor = policy([state_seq, action_seq], sample=True)
+            action_tensor = action_tensor.clamp(*policy.action_range)
+            action_tensor = action_tensor[:, -1, :]
+            action = action_tensor[0].cpu().detach().numpy()
+            obs, _, done, info = env.step(action)
+            state_seq.append(torch.from_numpy(obs).unsqueeze(0).float().to(device))
+            action_seq.append(action_tensor)
             video_recorder.record(env)
             if done:
                 average_episode_success += info["eval_score"]
@@ -143,17 +149,11 @@ def main(_):
 
                 policy.train()
                 optimizer.zero_grad()
-                out = policy(state)
-                if FLAGS.config.policy.type == "lstm":
-                    loss = F.mse_loss(out, action, reduction='none').sum(
-                        dim=-1).sum(dim=-1).mean()
-                else:
-                    loss = F.mse_loss(out, action)
+                (s_pred, a_pred), (s_gt, a_gt) = policy([state, action])
+                action_loss = F.mse_loss(a_pred, a_gt, reduction='none').sum(dim=-1).sum(dim=-1).mean()
+                state_loss = F.mse_loss(s_pred, s_gt, reduction='none').sum(dim=-1).sum(dim=-1).mean()
+                loss = action_loss + state_loss
                 loss.backward()
-                if FLAGS.config.policy.type == "lstm":
-                    torch.nn.utils.clip_grad_norm_(
-                        policy.parameters(), FLAGS.config.clip_grad_norm
-                    )
                 optimizer.step()
 
                 if not global_step % FLAGS.config.logging_frequency:
@@ -175,6 +175,7 @@ def main(_):
                         video_recorder,
                         global_step,
                         env,
+                        device,
                     )
                     logger.log_scalar(eval_success, global_step, "valid/success")
 

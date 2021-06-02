@@ -48,41 +48,49 @@ def get_config():
     # ================================================= #
     # Training parameters.
     # ================================================= #
-    config.num_eval_episodes = 20
+    config.num_eval_episodes = 100
     config.train_max_iters = 100_000
     config.eval_frequency = 10_000
-    config.logging_frequency = 1_000
+    config.logging_frequency = 100
     config.checkpoint_frequency = 25_000
     config.batch_size = 128
-    config.learning_rate = 3e-4
+    config.learning_rate = 1e-3
     config.l2_reg = 1e-5
     config.clip_grad_norm = 1.0
-    config.seq_len = 20
+
+    # Used for transformer and LSTM training.
+    config.seq_len = 6
 
     # ============================================== #
     # Policy params.
     # ============================================== #
     config.policy = ml_collections.ConfigDict()
 
-    config.policy.type = "mlp"
+    config.policy.type = "transformer"
     config.policy.input_dim = obs_dim
     config.policy.output_dim = action_dim
     config.policy.action_range = action_range
 
     # MLP policy params.
     config.policy.mlp = ml_collections.ConfigDict()
-    config.policy.mlp.hidden_dim = 64
-    config.policy.mlp.hidden_depth = 3
+    config.policy.mlp.hidden_dim = 128
+    config.policy.mlp.hidden_depth = 4
     config.policy.mlp.dropout_prob = 0.2
 
     # LSTM policy params.
     config.policy.lstm = ml_collections.ConfigDict()
-    config.policy.lstm.mlp_hidden_dim = 64
+    config.policy.lstm.mlp_hidden_dim = 128
     config.policy.lstm.mlp_hidden_depth = 2
     config.policy.lstm.mlp_dropout_prob = 0.1
-    config.policy.lstm.lstm_hidden_dim = 32
-    config.policy.lstm.lstm_hidden_depth = 2
+    config.policy.lstm.lstm_hidden_dim = 64
+    config.policy.lstm.lstm_hidden_depth = 1
     config.policy.lstm.lstm_dropout_prob = 0.2
+
+    # Autoregressive Transformer policy params.
+    config.policy.xformer = ml_collections.ConfigDict()
+    config.policy.xformer.emb_dim = 32
+    config.policy.xformer.num_blocks = 1
+    config.policy.xformer.num_heads = 4
 
     # ============================================== #
     # End of config file

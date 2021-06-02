@@ -91,7 +91,7 @@ Each policy is rolled out 1000 times in the environment. We report the mean, sta
 |-------------|--------------|-------------|-------------|----------|
 | MLP         | 0.70         | 0.68        | 0.73        | 0.35     |
 | LSTM        | 0.68         | 0.66        | 0.70        | 0.36     |
-| Transformer |              |             |             |          |
+| Transformer | 0.47         | 0.45        | 0.49        | 0.37     |
 
 And here are the loss and success curves:
 

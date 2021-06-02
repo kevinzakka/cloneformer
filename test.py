@@ -70,7 +70,7 @@ def main(_):
 
     # Evaluate and dump result to disk.
     if FLAGS.config.policy.type == "transformer":
-        protocol = evaluation.AEEvaluationProtocol(policy, FLAGS.n_rollouts, device)
+        protocol = evaluation.AREvaluationProtocol(policy, FLAGS.n_rollouts, device)
     else:
         protocol = evaluation.EvaluationProtocol(policy, FLAGS.n_rollouts, device)
     result = protocol.do_eval(env)

@@ -54,7 +54,7 @@ class EvaluationProtocol:
         return EvalResult(mean, interval[0], interval[1], std_dev)
 
 
-class AEEvaluationProtocol(EvaluationProtocol):
+class AREvaluationProtocol(EvaluationProtocol):
     """An evaluation protocol for autoregressive models."""
 
     def obtain_scores(self, env: gym.Env) -> Sequence[float]:

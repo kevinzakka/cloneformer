@@ -27,7 +27,7 @@ class EvaluationProtocol:
     ) -> None:
         self.policy = policy
         self.n_rollouts = n_rollouts
-        self.device = self.device
+        self.device = device
 
         self.policy.eval()
 
